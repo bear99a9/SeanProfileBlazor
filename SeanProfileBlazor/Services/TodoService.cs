@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 
 namespace SeanProfileBlazor.Services
 {
-    public class TodoDataService : ITodoDataService
+    public class TodoService : ITodoDataService
     {
         private readonly HttpClient _httpClient;
 
-        public TodoDataService(HttpClient httpClient)
+        public TodoService(HttpClient httpClient)
         {
             _httpClient = httpClient;
         }

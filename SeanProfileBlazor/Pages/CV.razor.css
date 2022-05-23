@@ -1,0 +1,44 @@
+.cvheader {
+    text-align: center;
+}
+
+.cvheader__title {
+    font-weight: bold;
+    font-size: 3em;
+    /*color: gold*/
+}
+
+.table {
+}
+
+    .table__trheaders{
+        text-align: center;
+    }
+    
+.skills{
+    
+}
+
+    .skills__ul {
+        list-style-type: none;
+    }
+        .skills__ultitle {
+            margin-top: 10px;
+            margin-bottom: 5px;
+        }
+
+.experience {
+    
+}
+
+.experience__company {
+}
+
+
+.title--faintunderline {
+    border-bottom: 1px solid currentColor;
+    display: inline-block;
+    line-height: 0.85;
+    text-shadow: 2px 2px white, 2px -2px white, -2px 2px white, -2px -2px white;
+}
+

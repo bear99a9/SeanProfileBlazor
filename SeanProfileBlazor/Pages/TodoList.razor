@@ -1,0 +1,80 @@
+﻿@page "/Todo"
+
+@attribute [Authorize(Roles = "Iron Man")]
+<AuthorizeView Roles="Iron Man">
+    <NotAuthorized>
+        <p>You are not authorized to see this page</p>
+    </NotAuthorized>
+    <Authorized>
+        <p>You're authorized as @context.User.Identity.Name</p>
+    </Authorized>
+</AuthorizeView>
+<section class="vh-100" style="background-color: #eee;">
+    <div class="container py-5 h-100">
+        <div class="row d-flex justify-content-center align-items-center h-100">
+            <div class="col col-lg-9 col-xl-7">
+                <div class="card rounded-3">
+                    <div class="card-body p-4">
+
+                        <h4 class="text-center my-3 pb-3">Sean's Todo List</h4>
+
+                        <EditForm Model="@Todo" OnValidSubmit="@HandleValidTodoCreateSubmit"
+                            OnInvalidSubmit="@HandleInvalidSubmit"class="row row-cols-lg-auto g-3 justify-content-center align-items-center mb-4 pb-2">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary></ValidationSummary>
+                        
+                            <div class="col-12">
+                                <div class="form-group row">
+                                    <label for="title" class="form-label">Enter a task and due date below</label>
+                                    <InputText id="title" class="form-control col-sm-8" @bind-Value="@Todo.Title" placeholder="Enter task here"></InputText>
+                                    <ValidationMessage class="offset-sm-3 col-sm-8" For="@(() => Todo.Title)" />
+                                </div>
+                                <div class="form-group row">
+                                    <label for="duedate" class="form-label"></label>
+                                    <InputDate id="duedate" class="form-control col-sm-8" @bind-Value="@Todo.DueDate" ></InputDate>
+                                    <ValidationMessage class="offset-sm-3 col-sm-8" For="@(() => Todo.DueDate)" />
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary">Save</button>
+                            </div>
+                        </EditForm>
+
+                        <table class="table mb-4">
+                            <thead>
+                                <tr>
+                                    <th scope="col">No.</th>
+                                    <th scope="col">Todo item</th>
+                                    <th scope="col" class="status">Status</th>
+                                    <th scope="col">Due Date</th>
+                                    <th scope="col">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{int i = 1; }
+                                @foreach (var todo in Todos)
+                                {
+                                    <tr>
+                                        <th scope="row">@i</th>
+                                        <td>@todo.Title</td>
+                                        <td> <span class="@(todo.IsCompleted ? "CompletedCSSClass" : "ActiveCSSClass")">@todo.Status </span></td>
+                                        <td>@todo.DueDate.ToString("dd/MM/yyyy")</td>
+                                        <td>
+                                            <button type="submit" class="btn btn-danger" @onclick="() => DeleteTodo(todo)">Delete</button>
+                                            @if (!todo.IsCompleted)
+                                            {
+                                               <button type="submit" class="btn btn-success ms-1" @onclick="() => UpdateTodo(todo)">Completed</button>
+                                            }
+                                        </td>
+                                    </tr>
+                                    i++;
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

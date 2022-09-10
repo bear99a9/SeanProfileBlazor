@@ -4,6 +4,7 @@
 
 .user-button {
     margin-left: .5em;
+    margin-right: .5em;
 }
 
 .top-row a {
@@ -12,4 +13,7 @@
 
 .dropdown-item:hover {
     background-color: white;
+    margin-right: .5em;
 }
+
+

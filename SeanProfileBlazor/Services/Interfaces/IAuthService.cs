@@ -4,5 +4,8 @@
     {
         Task<ServiceResponse<int>> RegisterUser(UserRegister userRegister);
         Task<ServiceResponse<string>> Login(UserLogin userLogin);
+        Task<ServiceResponse<bool>> ChangePassword(UserChangePassword changePassword);
     }
+
+
 }

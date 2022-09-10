@@ -1,7 +1,11 @@
-﻿using System;
+﻿using Blazored.LocalStorage;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -10,10 +14,12 @@ namespace SeanProfileBlazor.Services
     public class TodoService : ITodoDataService
     {
         private readonly HttpClient _httpClient;
+        private readonly ILocalStorageService _localstorage;
 
-        public TodoService(HttpClient httpClient)
+        public TodoService(HttpClient httpClient, ILocalStorageService localstorage)
         {
             _httpClient = httpClient;
+            _localstorage = localstorage;
         }
 
         public async Task<IEnumerable<TodoModel>> GetTodos()
@@ -32,12 +38,21 @@ namespace SeanProfileBlazor.Services
 
         public async Task<TodoModel> GetTodoById(int id)
         {
-            var response = await JsonSerializer.DeserializeAsync<TodoModel>
-                (await _httpClient.GetStreamAsync($"api/Todo/Todo/GetTodoById/{id}"), new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
+            var authToken = await GetAuthToken();
 
-            if (response != null)
+            var request = new HttpRequestMessage(HttpMethod.Post, $"https://localhost:1989/api/Todo/GetTodoById/{id}")
             {
-                return response;
+                Headers = { Authorization = new AuthenticationHeaderValue("Bearer", authToken) }
+            };
+
+
+            using var response = await _httpClient.SendAsync(request);
+
+            var result = await response.Content.ReadFromJsonAsync<TodoModel>();
+
+            if (result != null)
+            {
+                return result;
             }
 
             return new TodoModel();
@@ -45,8 +60,16 @@ namespace SeanProfileBlazor.Services
 
         public async Task<bool> AddTodo(TodoModel todo)
         {
-            var response = await _httpClient.PostAsync("api/Todo/CreateTodo",
-                new StringContent(JsonSerializer.Serialize(todo), System.Text.Encoding.UTF8, "application/json"));
+            var authToken = await GetAuthToken();
+
+            var request = new HttpRequestMessage(HttpMethod.Post, "https://localhost:1989/api/Todo/CreateTodo")
+            {
+                // set request body
+                Content = new StringContent(JsonSerializer.Serialize(todo), Encoding.UTF8, "application/json"),
+                Headers = { Authorization = new AuthenticationHeaderValue("Bearer", authToken) }
+            };
+
+            using var response = await _httpClient.SendAsync(request);
 
             if (response.IsSuccessStatusCode)
             {
@@ -80,5 +103,13 @@ namespace SeanProfileBlazor.Services
 
             return false;
         }
+
+        private async Task<string> GetAuthToken()
+        {
+            var authToken = await _localstorage.GetItemAsStringAsync("authToken");
+            return authToken.Replace("\"", "");
+            
+        }
+
     }
 }

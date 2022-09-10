@@ -1,7 +1,7 @@
 ﻿@page "/Todo"
 
-@attribute [Authorize(Roles = "Iron Man")]
-<AuthorizeView Roles="Iron Man">
+@attribute [Authorize]
+<AuthorizeView>
     <NotAuthorized>
         <p>You are not authorized to see this page</p>
     </NotAuthorized>
@@ -9,8 +9,8 @@
         <p>You're authorized as @context.User.Identity.Name</p>
     </Authorized>
 </AuthorizeView>
-<section class="vh-100" style="background-color: #eee;">
-    <div class="container py-5 h-100">
+<section class="todo-container">
+    <div class="container py-5">
         <div class="row d-flex justify-content-center align-items-center h-100">
             <div class="col col-lg-9 col-xl-7">
                 <div class="card rounded-3">
@@ -64,7 +64,7 @@
                                             <button type="submit" class="btn btn-danger" @onclick="() => DeleteTodo(todo)">Delete</button>
                                             @if (!todo.IsCompleted)
                                             {
-                                               <button type="submit" class="btn btn-success ms-1" @onclick="() => UpdateTodo(todo)">Completed</button>
+                                               <button type="submit" class="btn btn-success" @onclick="() => UpdateTodo(todo)">Completed</button>
                                             }
                                         </td>
                                     </tr>

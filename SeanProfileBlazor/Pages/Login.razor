@@ -21,7 +21,7 @@
         <InputText id="password" type="password" placeholder="Password" @bind-Value="user.Password" class="form-control" />
         <ValidationMessage For="@(() => user.Password)" />
      </div>
-     <button type="submit" class="btn btn-primary">Register</button>
+     <button type="submit" class="btn btn-primary">Login</button>
 </EditForm>
 <div class ="text-danger">
     <span>@errorMessage</span>
@@ -29,9 +29,23 @@
 
 
 @code {
+
+    private string returnUrl = string.Empty;
+    
     private UserLogin user = new UserLogin();   
 
     private string errorMessage = string.Empty;
+    
+    protected override void OnInitialized()
+    {
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("returnUrl", out var returnUrl))
+        {
+            this.returnUrl = returnUrl;
+        }
+    }
+
     
     private async Task HandleLogin()
     {
@@ -43,7 +57,9 @@
             
             await localStorage.SetItemAsync("authToken", result.Data);
             
-            NavigationManager.NavigateTo("");
+            await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            
+            NavigationManager.NavigateTo(returnUrl);
         }
         else
         {

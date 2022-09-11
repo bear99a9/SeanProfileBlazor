@@ -53,7 +53,7 @@ namespace SeanProfileBlazor.Services
             return await result.Content.ReadFromJsonAsync<ServiceResponse<int>>();
         }
 
-        private async Task<string> GetAuthToken()
+        public async Task<string> GetAuthToken()
         {
             var authToken =  await _localstorage.GetItemAsStringAsync("authToken");
             authToken.Replace("\"", "");

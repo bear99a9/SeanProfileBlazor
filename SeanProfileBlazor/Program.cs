@@ -17,7 +17,8 @@ builder.Services.AddBlazoredLocalStorage();
 
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:1989/") });
 
-builder.Services.AddHttpClient<ITodoDataService, TodoService>(client => { client.BaseAddress = new Uri("https://localhost:1989/"); });
+builder.Services.AddHttpClient<ITodoService, TodoService>(client => { client.BaseAddress = new Uri("https://localhost:1989/"); });
+
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 builder.Services.AddOptions();

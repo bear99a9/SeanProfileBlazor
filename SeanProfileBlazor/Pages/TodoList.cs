@@ -15,7 +15,7 @@ namespace SeanProfileBlazor.Pages
         public DateTime Today { get; set; } = DateTime.Now;
 
         [Inject]
-        public ITodoDataService todoDataService { get; set; }
+        public ITodoService todoDataService { get; set; }
         public int Count { get; set; } = 1;
 
         //used to store state of screen

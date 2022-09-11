@@ -4,7 +4,6 @@
 @using System.Text.Json
 @using Microsoft.Extensions.Logging
 @inject IHttpClientFactory ClientFactory
-@inject ILogger<FileUpload> Logger
 
 <h1>Upload Files</h1>
 
@@ -25,8 +24,7 @@
                     <li>
                         File: @file.Name
                         <br>
-                        @if (UploadFile(uploadResults, file.Name, Logger,
-                           out var result))
+                        @if (UploadFile(uploadResults, file.Name, out var result))
                         {
                             <span>
                                 Stored File Name: @result.StoredFileName
@@ -57,7 +55,7 @@
     private async Task OnInputFileChange(InputFileChangeEventArgs e)
     {
         shouldRender = false;
-        long maxFileSize = 1024 * 15;
+        long maxFileSize = 512000;
         var upload = false;
 
         using var content = new MultipartFormDataContent();
@@ -69,34 +67,34 @@
             {
                 try
                 {
-                    var fileContent = 
-                        new StreamContent(file.OpenReadStream(maxFileSize));
+                    var resizedFile = await file.RequestImageFileAsync(file.ContentType, 640, 480); // resize the image file
+                    var buf = new byte[resizedFile.Size]; // allocate a buffer to fill with the file's data
 
-                    fileContent.Headers.ContentType = 
-                        new MediaTypeHeaderValue(file.ContentType);
+                    var fileContent =
+                        new StreamContent(resizedFile.OpenReadStream(maxFileSize));
 
-                    files.Add(new() { Name = file.Name });
+                    fileContent.Headers.ContentType =
+                        new MediaTypeHeaderValue(resizedFile.ContentType);
+
+                    files.Add(new() { Name = resizedFile.Name });
 
                     content.Add(
                         content: fileContent,
                         name: "\"files\"",
-                        fileName: file.Name);
+                        fileName: resizedFile.Name);
 
                     upload = true;
                 }
                 catch (Exception ex)
                 {
-                    Logger.LogInformation(
-                        "{FileName} not uploaded (Err: 6): {Message}", 
-                        file.Name, ex.Message);
-
+                    Console.WriteLine(ex.Message);
                     uploadResults.Add(
                         new()
-                        {
-                            FileName = file.Name, 
-                            ErrorCode = 6, 
-                            Uploaded = false
-                        });
+                            {
+                                FileName = file.Name,
+                                ErrorCode = 6,
+                                Uploaded = false
+                            });
                 }
             }
         }
@@ -105,26 +103,29 @@
         {
             var client = ClientFactory.CreateClient();
 
-            var response = 
-                await client.PostAsync("https://localhost:1989/api/Blog/upload-file", 
+            var response =
+                await client.PostAsync("https://localhost:1989/api/Blog/upload-file",
                 content);
 
             if (response.IsSuccessStatusCode)
             {
                 var options = new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true,
-                };
+                    {
+                        PropertyNameCaseInsensitive = true,
+                    };
 
                 using var responseStream =
                     await response.Content.ReadAsStreamAsync();
 
                 var newUploadResults = await JsonSerializer
-                    .DeserializeAsync<IList<UploadResult>>(responseStream, options);
+                    .DeserializeAsync<ServiceResponse<IList<UploadResult>>>(responseStream, options);
 
-                if (newUploadResults is not null)
+                if (newUploadResults is not null && newUploadResults.Success)
                 {
-                    uploadResults = uploadResults.Concat(newUploadResults).ToList();
+                    if (newUploadResults.Data is not null && newUploadResults.Data.Any())
+                    {
+                        uploadResults = uploadResults.Concat(newUploadResults.Data).ToList();
+                    }
                 }
             }
         }
@@ -133,13 +134,12 @@
     }
 
     private static bool UploadFile(IList<UploadResult> uploadResults,
-        string? fileName, ILogger<FileUpload> logger, out UploadResult result)
+        string? fileName, out UploadResult result)
     {
         result = uploadResults.SingleOrDefault(f => f.FileName == fileName) ?? new();
 
         if (!result.Uploaded)
         {
-            logger.LogInformation("{FileName} not uploaded (Err: 5)", fileName);
             result.ErrorCode = 5;
         }
 

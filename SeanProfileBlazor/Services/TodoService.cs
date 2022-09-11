@@ -11,15 +11,17 @@ using System.Threading.Tasks;
 
 namespace SeanProfileBlazor.Services
 {
-    public class TodoService : ITodoDataService
+    public class TodoService : ITodoService
     {
         private readonly HttpClient _httpClient;
         private readonly ILocalStorageService _localstorage;
+        private readonly IAuthService _authService;
 
-        public TodoService(HttpClient httpClient, ILocalStorageService localstorage)
+        public TodoService(HttpClient httpClient, ILocalStorageService localstorage, IAuthService authService)
         {
             _httpClient = httpClient;
             _localstorage = localstorage;
+            _authService = authService;
         }
 
         public async Task<IEnumerable<TodoModel>> GetTodos()
@@ -38,7 +40,7 @@ namespace SeanProfileBlazor.Services
 
         public async Task<TodoModel> GetTodoById(int id)
         {
-            var authToken = await GetAuthToken();
+            var authToken = await _authService.GetAuthToken();
 
             var request = new HttpRequestMessage(HttpMethod.Post, $"https://localhost:1989/api/Todo/GetTodoById/{id}")
             {
@@ -60,7 +62,7 @@ namespace SeanProfileBlazor.Services
 
         public async Task<bool> AddTodo(TodoModel todo)
         {
-            var authToken = await GetAuthToken();
+            var authToken = await _authService.GetAuthToken();
 
             var request = new HttpRequestMessage(HttpMethod.Post, "https://localhost:1989/api/Todo/CreateTodo")
             {
@@ -102,13 +104,6 @@ namespace SeanProfileBlazor.Services
             }
 
             return false;
-        }
-
-        private async Task<string> GetAuthToken()
-        {
-            var authToken = await _localstorage.GetItemAsStringAsync("authToken");
-            return authToken.Replace("\"", "");
-            
         }
 
     }

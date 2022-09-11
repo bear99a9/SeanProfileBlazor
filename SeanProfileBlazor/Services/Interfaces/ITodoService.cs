@@ -1,7 +1,7 @@
 ﻿
 namespace SeanProfileBlazor.Services
 {
-    public interface ITodoDataService
+    public interface ITodoService
     {
         Task<bool> AddTodo(TodoModel todo);
         Task<bool> DeleteTodo(int id);

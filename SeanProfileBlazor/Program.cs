@@ -20,11 +20,11 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https:/
 builder.Services.AddHttpClient<ITodoService, TodoService>(client => { client.BaseAddress = new Uri("https://localhost:1989/"); });
 
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IBlogService, BlogService>();
 
 builder.Services.AddOptions();
 builder.Services.AddAuthorizationCore();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
-
 
 
 await builder.Build().RunAsync();

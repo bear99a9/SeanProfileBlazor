@@ -1,11 +1,12 @@
 ﻿using Blazored.LocalStorage;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 
 namespace SeanProfileBlazor.Services
 {
-    public class BlogService
+    public class BlogService : IBlogService
     {
         private readonly HttpClient _httpClient;
         private readonly IAuthService _authService;
@@ -16,14 +17,14 @@ namespace SeanProfileBlazor.Services
             _authService = authService;
         }
 
-        public async Task<bool> SaveFile(TodoModel todo)
+        public async Task<IList<BlogModel>> SaveFile(MultipartFormDataContent content)
         {
             var authToken = await _authService.GetAuthToken();
 
             var request = new HttpRequestMessage(HttpMethod.Post, "https://localhost:1989/api/Blog/upload-file")
             {
                 // set request body
-                Content = new StringContent(JsonSerializer.Serialize(todo), Encoding.UTF8, "application/json"),
+                Content = content,
                 Headers = { Authorization = new AuthenticationHeaderValue("Bearer", authToken) }
             };
 
@@ -31,10 +32,13 @@ namespace SeanProfileBlazor.Services
 
             if (response.IsSuccessStatusCode)
             {
-                return await JsonSerializer.DeserializeAsync<bool>(await response.Content.ReadAsStreamAsync());
+                var result = await response.Content.ReadFromJsonAsync<ServiceResponse<IList<BlogModel>>>();
+
+                return result.Data;
+
             }
 
-            return false;
+            return new List<BlogModel>();
         }
 
     }
